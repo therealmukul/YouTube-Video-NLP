@@ -15,6 +15,8 @@ import json
 import subprocess
 import re
 import operator
+import re
+import datetime
 
 
 
@@ -112,12 +114,48 @@ def extractNamedEntities(id=None):
     print "NER Complete"
     return jsonify(entities)
 
-@app.route('/sentiment/<message>')
-def sentiment(message):
-    text = TextBlob(message)
-    response = {'polarity' : text.polarity , 'subjectivity' : text.subjectivity}
-    return jsonify(response)
+@app.route('/sentiment/<id>')
+def sentiment(id=None):
 
+
+    chunks = []
+    chunk = []
+    for line in open("captions/" + id + ".en.vtt", 'r'):
+        if line != '\n':
+            line = line.decode('utf-8').strip()
+            chunk.append(line)
+        else:
+            chunks.append(chunk)
+            chunk = []
+
+    sentiments = {}
+    for chunk in chunks:
+        time = chunk[0]
+        time_range = time.split('-->')
+
+        if len(time_range) > 1:
+
+            start = time_range[0].strip()
+            end = time_range[1].strip()
+
+            h1, m1, s1 = re.split(':', start)
+            h2, m2, s2 = re.split(':', end)
+
+            start_int = int(datetime.timedelta(hours=int(h1),minutes=int(m1),seconds=float(s1)).total_seconds())
+            end_int = int(datetime.timedelta(hours=int(h2),minutes=int(m2),seconds=float(s2)).total_seconds())
+
+            print start_int, end_int
+
+            for i in xrange(1, len(chunk)):
+                text = TextBlob(chunk[i])
+                if time not in sentiments:
+                    senti = text.sentiment.polarity
+                    sentiments[time] = {}
+                    sentiments[time]["start"] = start_int
+                    sentiments[time]["end"] = end_int
+                    sentiments[time]["sentiment"] = senti
+
+    return jsonify(sentiments)
 
 if __name__ == "__main__":
     app.run(host="localhost", port=int("8000"), threaded=True)
