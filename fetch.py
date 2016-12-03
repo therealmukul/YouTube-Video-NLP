@@ -5,6 +5,7 @@ from xml.etree import ElementTree
 from nltk.tag import StanfordNERTagger
 from nltk.tokenize import word_tokenize
 from sets import Set
+from textblob import TextBlob
 
 import os
 import sys
@@ -13,8 +14,9 @@ import math
 import json
 import subprocess
 import re
+import operator
 
-entities = {}
+
 
 app = Flask(__name__)
 
@@ -44,6 +46,7 @@ def processCaptions(id=None):
 # Extract named entities
 @app.route("/ner/<id>")
 def extractNamedEntities(id=None):
+    entities = {}
     st = StanfordNERTagger('/Users/mukul/NLP/stanford-ner-2015-12-09/classifiers/english.muc.7class.distsim.crf.ser.gz',
 					       '/Users/mukul/NLP/stanford-ner-2015-12-09/stanford-ner.jar',
                            encoding='utf-8')
@@ -62,8 +65,8 @@ def extractNamedEntities(id=None):
     text = ""
     i = 0
     texts = []
-    # while i < 10:
-    while i < len(sents) - 5:
+    while i < 50:
+    # while i < len(sents) - 5:
         s = " "
         seq = (sents[i].rstrip() + '.', sents[i + 1].rstrip() + '.', sents[i + 2].rstrip() + '.', sents[i + 3].rstrip() + '.', sents[i + 4].rstrip() + '.')
         text = s.join(seq)
@@ -88,15 +91,32 @@ def extractNamedEntities(id=None):
                 word = word.strip()
 
                 if category not in entities:
-                    entities[category] = [word]
+                    entities[category] = {}
+                    entities[category][word] = 1
                 else:
                     if word not in entities[category]:
-                        entities[category].append(word)
+                        entities[category][word] = 1
+                    else:
+                        entities[category][word] += 1
             else:
                 j += 1
 
+    # Sort the values in each cateory by frequency
+    for category in entities:
+        sort_list = sorted(entities[category].items(), key=lambda x: x[1], reverse=True)
+        top = []
+        for item in sort_list:
+            top.append(item[0])
+        entities[category]["TOP"] = top
+
+    print "NER Complete"
     return jsonify(entities)
 
+@app.route('/sentiment/<message>')
+def sentiment(message):
+    text = TextBlob(message)
+    response = {'polarity' : text.polarity , 'subjectivity' : text.subjectivity}
+    return jsonify(response)
 
 
 if __name__ == "__main__":
