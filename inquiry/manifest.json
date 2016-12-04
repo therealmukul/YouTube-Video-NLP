@@ -1,0 +1,24 @@
+{
+    "name": "inquiry",
+    "manifest_version": 2,
+    "description": "YouTube++",
+    "version": "0.3",
+    "permissions": ["tabs", "*://*.youtube.com/watch*", "http://localhost/*"],
+    "content_scripts": [{
+        "matches": ["*://*.youtube.com/watch*"],
+        "js": ["inquiry.js", "jquery.js"],
+        "css": ["hint.css", "inquiry.css"]
+    }],
+    "icons": {
+        "16": "logo16.png",
+        "48": "logo48.png",
+        "128": "logo128.png"
+    },
+    "background":
+    {
+        "scripts": ["jquery.js"]
+    },
+    "browser_action": {
+		"default_popup": "popup.html"
+	}
+}

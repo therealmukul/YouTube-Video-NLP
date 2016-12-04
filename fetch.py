@@ -6,6 +6,10 @@ from nltk.tag import StanfordNERTagger
 from nltk.tokenize import word_tokenize
 from sets import Set
 from textblob import TextBlob
+from OpenSSL import SSL
+from datetime import timedelta
+from flask import Flask, make_response, request, current_app
+from functools import update_wrapper
 
 import os
 import sys
@@ -18,9 +22,49 @@ import operator
 import re
 import datetime
 
-
+context = ('/Users/mukul/SSL.crt', '/Users/mukul/SSL.key')
 
 app = Flask(__name__)
+
+def crossdomain(origin=None, methods=None, headers=None, max_age=21600, attach_to_all=True, automatic_options=True):
+    if methods is not None:
+        methods = ', '.join(sorted(x.upper() for x in methods))
+    if headers is not None and not isinstance(headers, basestring):
+        headers = ', '.join(x.upper() for x in headers)
+    if not isinstance(origin, basestring):
+        origin = ', '.join(origin)
+    if isinstance(max_age, timedelta):
+        max_age = max_age.total_seconds()
+
+    def get_methods():
+        if methods is not None:
+            return methods
+
+        options_resp = current_app.make_default_options_response()
+        return options_resp.headers['allow']
+
+    def decorator(f):
+        def wrapped_function(*args, **kwargs):
+            if automatic_options and request.method == 'OPTIONS':
+                resp = current_app.make_default_options_response()
+            else:
+                resp = make_response(f(*args, **kwargs))
+            if not attach_to_all and request.method != 'OPTIONS':
+                return resp
+
+            h = resp.headers
+
+            h['Access-Control-Allow-Origin'] = origin
+            h['Access-Control-Allow-Methods'] = get_methods()
+            h['Access-Control-Max-Age'] = str(max_age)
+            if headers is not None:
+                h['Access-Control-Allow-Headers'] = headers
+            return resp
+
+        f.provide_automatic_options = False
+        return update_wrapper(wrapped_function, f)
+    return decorator
+
 
 @app.route("/")
 def main():
@@ -115,11 +159,13 @@ def extractNamedEntities(id=None):
     return jsonify(entities)
 
 @app.route('/sentiment/<id>')
+@crossdomain(origin='*')
 def sentiment(id=None):
-
-
     chunks = []
     chunk = []
+    negative_words = []
+    positive_words = []
+
     for line in open("captions/" + id + ".en.vtt", 'r'):
         if line != '\n':
             line = line.decode('utf-8').strip()
@@ -128,7 +174,14 @@ def sentiment(id=None):
             chunks.append(chunk)
             chunk = []
 
-    sentiments = {}
+    for word in open('negativewords.txt', 'r'):
+        negative_words.append(word.rstrip())
+    for word in open('positivewords.txt', 'r'):
+        positive_words.append(word.rstrip())
+
+    sentiments = []
+    times = Set()
+
     for chunk in chunks:
         time = chunk[0]
         time_range = time.split('-->')
@@ -144,18 +197,27 @@ def sentiment(id=None):
             start_int = int(datetime.timedelta(hours=int(h1),minutes=int(m1),seconds=float(s1)).total_seconds())
             end_int = int(datetime.timedelta(hours=int(h2),minutes=int(m2),seconds=float(s2)).total_seconds())
 
-            print start_int, end_int
-
             for i in xrange(1, len(chunk)):
+                # if time not in times:
                 text = TextBlob(chunk[i])
-                if time not in sentiments:
-                    senti = text.sentiment.polarity
-                    sentiments[time] = {}
-                    sentiments[time]["start"] = start_int
-                    sentiments[time]["end"] = end_int
-                    sentiments[time]["sentiment"] = senti
+                senti = text.sentiment.polarity
+                words = (chunk[i].lower()).split()
 
+                for word in words:
+                    # print word
+                    word = re.sub("[\.\t\,\:;\(\)\.]", "", word, 0, 0)
+                    if word in positive_words:
+                        print "pos", word
+                        senti += 0.2
+                    elif word in negative_words:
+                        print "neg", word
+                        senti += -0.2
+
+                sentiments.append([start_int, end_int, senti])
+                times.add(time)
+
+    print "Sentiment Analysis Complete"
     return jsonify(sentiments)
 
 if __name__ == "__main__":
-    app.run(host="localhost", port=int("8000"), threaded=True)
+    app.run(host='localhost', port=int("8000"), threaded=True, ssl_context=context)

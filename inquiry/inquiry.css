@@ -1,0 +1,84 @@
+@font-face {
+    font-family: 'FontAwesome';
+    src: url('https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/fonts/fontawesome-webfont.eot?v=4.4.0');
+    src: url('https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/fonts/fontawesome-webfont.eot?#iefix&v=4.4.0') format('embedded-opentype'), url('https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/fonts/fontawesome-webfont.woff2?v=4.4.0') format('woff2'), url('https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/fonts/fontawesome-webfont.woff?v=4.4.0') format('woff'), url('https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/fonts/fontawesome-webfont.ttf?v=4.4.0') format('truetype'), url('https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/fonts/fontawesome-webfont.svg?v=4.4.0#fontawesomeregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}.fa-spin{-webkit-animation:fa-spin 2s infinite linear;animation:fa-spin 2s infinite linear}@-webkit-keyframes fa-spin{0%{-webkit-transform:rotate(0deg);transform:rotate(0deg)}100%{-webkit-transform:rotate(359deg);transform:rotate(359deg)}}@keyframes fa-spin{0%{-webkit-transform:rotate(0deg);transform:rotate(0deg)}100%{-webkit-transform:rotate(359deg);transform:rotate(359deg)}}.fa-rotate-90{filter:progid:DXImageTransform.Microsoft.BasicImage(rotation=1);-webkit-transform:rotate(90deg);-ms-transform:rotate(90deg);transform:rotate(90deg)}
+
+.i-container {
+    display: inline;
+    position: absolute;
+}
+
+.i-search {
+    transition: width 0.6s, background 0.6s;
+    width: 22px;
+    border: none;
+    cursor: pointer;
+    background: #ebebeb;
+    line-height: 2.5rem;
+    font-size: 14px;
+    line-height: 22px;
+}
+
+.i-search.processing {
+    transition: width 20s, background 20s;
+    width: 250px;
+    padding-left: 25px;
+    background: mediumspringgreen !important;
+}
+
+.i-search:disabled:hover {
+    color: white;
+    background: #c8c8c8;
+}
+
+.i-search:disabled {
+    color: rgba(0, 0, 0, 0);
+}
+
+.i-search:not(:disabled) {
+    transition: width 0.6s cubic-linear, border-radius 0.6s, background 0.6s;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    padding-left: 25px;
+    cursor: text;
+    width: 250px;
+    border-radius: auto;
+    background: #ebebeb;
+    color: black;
+}
+
+.i-search-icon {
+    position: relative;
+    left: 19px;
+    cursor: pointer;
+    display: inline-block;
+    font: normal normal normal 10px/1 FontAwesome;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    pointer-events: none;
+}
+
+.i-search-icon:before {
+    content: "\f002";
+}
+
+.i-search-icon.not-loaded:before {
+    content: "\f00e";
+}
+
+.i-search-icon.loading:before {
+    content: "\f110";
+}
+
+.i-results {
+    position: absolute;
+    top: .3rem;
+    right: .2rem;
+    text-decoration: underline;
+}
