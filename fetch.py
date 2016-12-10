@@ -153,7 +153,7 @@ def extractNamedEntities(id=None):
         top = []
         for item in sort_list:
             top.append(item[0])
-        entities[category]["TOP"] = top
+        entities[category]["TOP"] = top[0:5]
 
     print "NER Complete"
     return jsonify(entities)

@@ -42,7 +42,7 @@ i.getSentiment = function(onLoad) {
                   e.style['backgroundColor'] = 'mediumspringgreen'
                } else if (sentiment < 0.0) {
                   // Negative
-                  e.style['backgroundColor'] = '#9000fa'
+                  e.style['backgroundColor'] = '#f44242'
                } else {
                   // Neutral
                   e.style['backgroundColor'] = '#a7a7a7'
